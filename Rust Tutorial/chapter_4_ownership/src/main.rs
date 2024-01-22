@@ -1,4 +1,6 @@
 mod refrences;
+mod the_slice_type;
+
 fn main() {
     let _fix_str = "hello";
     // this is in stack and cannot be changed
@@ -19,6 +21,7 @@ fn main() {
     let go = gives_ownership();
     println!("Giving owner ship to variable go: {go}"); // go will become "Gave OwnerShip" string
     refrences::refrences();
+    the_slice_type::slice_type();
 }
 fn takes_ownership(some_string: String) {
     // some_string will become s (parameter that is passed) as it is string
@@ -53,3 +56,11 @@ fn gives_ownership() -> String {
 
 //         // do stuff with s
 //     }                      // this scope is now over, and s is no longer valid
+
+// let mut s = String::from("hello");
+
+// // {
+// //     let r1 = &mut s;
+// // } // r1 goes out of scope here, so we can make a new reference with no problems.
+
+// // let r2 = &mut s;

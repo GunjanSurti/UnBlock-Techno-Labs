@@ -1,13 +1,13 @@
 enum Coin {
-    Penny,
-    Nickel,
-    Dime,
+    // Penny,
+    // Nickel,
+    // Dime,
     Quarter(UsState),
 }
 #[derive(Debug)] // so we can inspect the state in a minute
 enum UsState {
     Alabama,
-    Alaska,
+    // Alaska,
 }
 pub fn option() {
     let some_number: Option<i32> = Some(8);
@@ -25,29 +25,31 @@ pub fn option() {
     let _a = plus_one(Some(8));
     // println!("a : {:#?}", a);
 }
+// fn good(){
+//     println!("good");
+// }
 
-fn match_all(x: i32)  {
-    match x { // rolling dice
-        6 => good(),
-        5 => good(),
-        // _ => String::from("Reroll"), 
-        // "_" means for other pattern it will Reroll
-        _ => (), 
-        // _ is a special pattern that matches any value and does not bind to that value.
-        // we’re telling Rust explicitly that we aren’t going to use any other value that doesn’t match a pattern in an earlier arm, and we don’t want to run any code in this case.
-    }
-}
-fn good(){}
+// fn match_all(x: i32)  {
+//     match x { // rolling dice
+//         6 => good(),
+//         5 => good(),
+//         // _ => String::from("Reroll"),
+//         // "_" means for other pattern it will Reroll
+//         _ => (),
+//         // _ is a special pattern that matches any value and does not bind to that value.
+//         // we’re telling Rust explicitly that we aren’t going to use any other value that doesn’t match a pattern in an earlier arm, and we don’t want to run any code in this case.
+//     }
+// }
 fn match_coin(coin: Coin) -> u8 {
     match coin {
-        Coin::Penny => {
-            // using {} for multiple line
-            8
-        } // no comma need
-        Coin::Nickel => 5,
-        Coin::Dime => 10,
+        // Coin::Penny => {
+        //     // using {} for multiple line
+        //     8
+        // } // no comma need
+        // Coin::Nickel => 5,
+        // Coin::Dime => 10,
         Coin::Quarter(state) => {
-            // println!("State quarter from {:#?}", state);
+            println!("State quarter from {:#?}", state);
             25
         }
     }

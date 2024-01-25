@@ -15,10 +15,10 @@ enum Message {
 }
 impl Message {
     // implementation of enum
-    fn change_m(&self, a: i32, b: i32, c: i32) -> Self {
-        // &self is first parameter, in this case "m" or variable that method is called upon
-        Self::ChangeColor(a, b, c) // denotes Message
-    }
+    // fn change_m(&self, a: i32, b: i32, c: i32) -> Self {
+    //     // &self is first parameter, in this case "m" or variable that method is called upon
+    //     Self::ChangeColor(a, b, c) // denotes Message
+    // }
 }
 // #[derive(Debug)]
 // struct IpAddress {

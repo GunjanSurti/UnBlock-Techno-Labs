@@ -1,4 +1,6 @@
 mod vectors;
+mod strings;
 fn main() {
-    vectors::vectors();
+    // vectors::vectors();
+    strings::storing_strings();
 }

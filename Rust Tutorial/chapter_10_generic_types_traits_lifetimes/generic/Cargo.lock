@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "chapter_10_Generic_types_traits_lifetimes"
+name = "generic"
 version = "0.1.0"

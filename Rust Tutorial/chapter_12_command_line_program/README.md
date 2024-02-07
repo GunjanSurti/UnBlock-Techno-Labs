@@ -8,3 +8,7 @@
 4. Repeat from step 1!
 
 Though it’s just one of many ways to write software, TDD can help drive code design. Writing the test before you write the code that makes the test pass helps to maintain high test coverage throughout the process.
+
+there are two kinds of output: standard output (stdout) for general information and standard error (stderr) for error message
+
+we’ll run the program with > and the file path, output.txt, that we want to redirect the standard output stream to

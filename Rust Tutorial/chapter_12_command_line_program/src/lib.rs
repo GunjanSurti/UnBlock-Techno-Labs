@@ -14,24 +14,26 @@ impl Config {
             return Err("not enough arguments");
         }
         // args[0] => target\\debug\\chapter_12_command_line_program.exe
-        let query = args[1].clone(); // clone bcz we dont want to take ownership
-        let filename = args[2].clone(); //Config cannot have &str without lifetime which makes complicated
-        // let case_sensitive: Result<String, env::VarError> = env::var("CASE_INSENSITIVE");
+        let query = args[1].clone();
+        // clone bcz we dont want to take ownership
+        let filename = args[2].clone();
+        //Config cannot have &str without lifetime which makes complicated
+        // let case_sensitive: "Result<String, env::VarError>" = env::var("CASE_INSENSITIVE");
         let case_sensitive: bool = env::var("CASE_INSENSITIVE").is_err();
         // "var" => takes an key to environment variable and  returns Result type,
         // if key exists and set then the result will be Ok containing set value
         // otherwise it results in error
         // now "is_err" returns boolean
         // if key is not set then "var" returns error,Returns true if the result is Err.
-        
+
         /* command to run in "bash" */
-        //$ export CASE_INSENSITIVE=true 
+        //$ export CASE_INSENSITIVE=true
         // $ cargo run -- to poem.txt
         //  unset CASE_INSENSITIVE
 
         Ok(Config {
             query,
-            filename,   
+            filename,
             case_sensitive,
         })
     }
@@ -78,6 +80,8 @@ pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a st
     let mut results = Vec::new();
 
     for line in contents.lines() {
+        //line() => line-by-line iteration of strings
+        // The lines method returns an iterator
         // to_lowercase returns new string so we are not modifing old string
         if line.to_lowercase().contains(&query) {
             results.push(line);
@@ -100,6 +104,7 @@ Rust :
 safe, fast ,productive.
 Pick three.:
 Duct Tape.";
+        //(Note that the backslash after the opening double quote tells Rust not to put a newline character at the beginning of the contents of this string literal)
         assert_eq!(vec!["safe, fast ,productive."], search(query, contents));
     }
     //     fn one_result() {

@@ -1,28 +1,43 @@
 use chapter_12_command_line_program::Config;
 use std::{env, process};
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    // used to take arguments from command line
 
-    let config = Config::build(&args).unwrap_or_else(|err| {
-        //unwrap_or_else allows us to define some custom, non-panic! error handling
-        //If the Result is an Ok value, this method’s behavior is similar to unwrap: it returns the inner value Ok is wrapping
+    let config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
-        // err => not enough arguments
         process::exit(1);
-    }); // this is to reduce noise which is shown in terminal in case of error
-
+    });
     println!("Searching for {:?}", config.query);
     println!("In file {:?}", config.filename);
 
-    // here we dont use unwrap_or_else as we dont want success value, we only want error value
     if let Err(e) = chapter_12_command_line_program::run(config) {
         eprintln!("Application Error: {}", e);
-        // this will not be written in new file in case of error
-        // means this will show up in terminal and not in new file, here we are trying to write output in new file
         process::exit(1);
     }
 }
+// Original before modifying
+// fn main() {
+//     let args: Vec<String> = env::args().collect();
+//     // used to take arguments from command line
+
+//     let config = Config::build(&args).unwrap_or_else(|err| {
+//         //unwrap_or_else allows us to define some custom, non-panic! error handling
+//         //If the Result is an Ok value, this method’s behavior is similar to unwrap: it returns the inner value Ok is wrapping
+//         eprintln!("Problem parsing arguments: {}", err);
+//         // err => not enough arguments
+//         process::exit(1);
+//     }); // this is to reduce noise which is shown in terminal in case of error
+
+//     println!("Searching for {:?}", config.query);
+//     println!("In file {:?}", config.filename);
+
+//     // here we dont use unwrap_or_else as we dont want success value, we only want error value
+//     if let Err(e) = chapter_12_command_line_program::run(config) {
+//         eprintln!("Application Error: {}", e);
+//         // this will not be written in new file in case of error
+//         // means this will show up in terminal and not in new file, here we are trying to write output in new file
+//         process::exit(1);
+//     }
+// }
 
 /***
  * cargo run -- file poem.txt

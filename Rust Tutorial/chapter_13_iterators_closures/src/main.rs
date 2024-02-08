@@ -1,15 +1,21 @@
 use std::thread;
 use std::time::Duration;
-
+mod iterators;
+mod iterators_2;
 // fn simulated_expensive_calculation(intensity: u32) -> u32 {
 //     println!("calculating slowly...");
 //     thread::sleep(Duration::from_secs(2)); // it will take 2 sec to run
 //     intensity
 // }
+#[allow(unused_variables)]
+#[allow(dead_code)]
+
 fn main() {
+    iterators::iterate();
+    iterators_2::iter_2();
     let simulated_intensity = 10;
     let simulated_random_number = 7;
-    generate_workout(simulated_intensity, simulated_random_number);
+    // generate_workout(simulated_intensity, simulated_random_number);
 }
 // in order to define struct, enums or functions we need to use generics and traits bound
 struct Cacher<T>
@@ -44,7 +50,7 @@ where
         }
     }
 }
-
+#[allow(dead_code)]
 fn generate_workout(intensity: u32, random_number: u32) {
     // this is closure
     // expensive_closure is storing closure itself nott num value
@@ -69,6 +75,7 @@ fn generate_workout(intensity: u32, random_number: u32) {
 }
 
 /***
+ * Closures will automatically implement one, two, or all three of these "Fn traits",
 * closure can capture variable in environment by 3 ways
 * 1. taking ownership => FnOnce  => closures can't take ownership of one variable more than once
 * 2. borrowing mutablly => FnMut
@@ -93,7 +100,7 @@ fn main() {
 
     borrows_mutably();
     println!("After calling closure: {:?}", list);
-}  
+}
 => Before defining closure: [1, 2, 3]
 After calling closure: [1, 2, 3, 7]
 -----------------------------------------------------------------------

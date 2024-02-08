@@ -8,28 +8,21 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &str> {
-        // Result<...> bcz to give clear error
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
-        // args[0] => target\\debug\\chapter_12_command_line_program.exe
-        let query = args[1].clone();
-        // clone bcz we dont want to take ownership
-        let filename = args[2].clone();
-        //Config cannot have &str without lifetime which makes complicated
-        // let case_sensitive: "Result<String, env::VarError>" = env::var("CASE_INSENSITIVE");
-        let case_sensitive: bool = env::var("CASE_INSENSITIVE").is_err();
-        // "var" => takes an key to environment variable and  returns Result type,
-        // if key exists and set then the result will be Ok containing set value
-        // otherwise it results in error
-        // now "is_err" returns boolean
-        // if key is not set then "var" returns error,Returns true if the result is Err.
+    pub fn build(mut args: env::Args) -> Result<Config, &'static str> {
+        args.next();
+        // => returns 1st commandline argument
+        // we are discarding it as 1st arg is path of file
 
-        /* command to run in "bash" */
-        //$ export CASE_INSENSITIVE=true
-        // $ cargo run -- to poem.txt
-        //  unset CASE_INSENSITIVE
+        // query and filename are taking ownership of their string
+        let query = match args.next() {
+            Some(arg) => arg, // string inside Some() is owned string
+            None => return Err("Didn't get a query string"),
+        };
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file name"),
+        };
+        let case_sensitive: bool = env::var("CASE_INSENSITIVE").is_err();
 
         Ok(Config {
             query,
@@ -38,6 +31,39 @@ impl Config {
         })
     }
 }
+
+// original before modifying
+// impl Config {
+//     pub fn build(args: &[String]) -> Result<Config, &str> {
+//         // Result<...> bcz to give clear error
+//         if args.len() < 3 {
+//             return Err("not enough arguments");
+//         }
+//         // args[0] => target\\debug\\chapter_12_command_line_program.exe
+//         let query = args[1].clone();
+//         // clone bcz we dont want to take ownership
+//         let filename = args[2].clone();
+//         //Config cannot have &str without lifetime which makes complicated
+//         // let case_sensitive: "Result<String, env::VarError>" = env::var("CASE_INSENSITIVE");
+//         let case_sensitive: bool = env::var("CASE_INSENSITIVE").is_err();
+//         // "var" => takes an key to environment variable and  returns Result type,
+//         // if key exists and set then the result will be Ok containing set value
+//         // otherwise it results in error
+//         // now "is_err" returns boolean
+//         // if key is not set then "var" returns error,Returns true if the result is Err.
+
+//         /* command to run in "bash" */
+//         //$ export CASE_INSENSITIVE=true
+//         // $ cargo run -- to poem.txt
+//         //  unset CASE_INSENSITIVE
+
+//         Ok(Config {
+//             query,
+//             filename,
+//             case_sensitive,
+//         })
+//     }
+// }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     //we used the "trait object" Box<dyn Error>
@@ -62,18 +88,28 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    // we have only given lifetime to "contents" because "query" is always there
-    let mut results = Vec::new();
 
-    for line in contents.lines() {
-        // looping through each in contents
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-    results
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    contents
+        .lines()
+        .filter(|line| line.contains(query)) // adapter, takes and return iterator
+        .collect() // consumer, takes iterator and return  different data type
+                   // here rust knows which collection should be return as it is specified in return type of function
 }
+
+// original before modifing
+// pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+//     // we have only given lifetime to "contents" because "query" is always there
+//     let mut results = Vec::new();
+
+//     for line in contents.lines() {
+//         // looping through each in contents
+//         if line.contains(query) {
+//             results.push(line);
+//         }
+//     }
+//     results
+// }
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     // this is case case_insensitive search
     let query = query.to_lowercase();

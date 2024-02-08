@@ -1,0 +1,22 @@
+[package]
+name = "chapter_14_cargo_crates_io"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# cargo has 2 profiles 
+# 1. dev => (default opt-level = 0) compilation speed fast , slow runtime speed
+#         => good default for develpoment
+#         => cargo build (Finished dev [unoptimized + debuginfo] target(s) in 0.55s)
+# 2. release => opt-level = 3 default, compilation speed slow as only time compilation , fast runtime speed
+#         => good default for release build
+#         => cargo build --release (Finished release [optimized] target(s) in 0.61s)
+
+[profile.dev]
+opt-level = 0
+# 0-3 level only 3 => highly optimized 
+[profile.release]
+opt-level = 3

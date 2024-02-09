@@ -1,0 +1,2 @@
+- if binary is prefixed with cargo eg
+- cargo-something -> then we can use "cargo something" command

@@ -35,11 +35,8 @@ You’ll use them most often in these situations:
 1. When you have a type whose size can’t be known at compile time and you want to use a value of that type in a context that requires an exact size
 => “Enabling Recursive Types with Boxes” section
 
-2.When you have a large amount of data and you want to transfer ownership but ensure the data won’t be copied when you do so
+2. When you have a large amount of data and you want to transfer ownership but ensure the data won’t be copied when you do so
 =>In the second case, transferring ownership of a large amount of data can take a long time because the data is copied around on the "stack". To improve performance in this situation, we can store the large amount of data on the "heap" in a box. Then, only the small amount of "pointer data" is copied around on the stack, while the data it references stays in one place on the heap.
 
-3.When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type
+3. When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type
 => The third case is known as a "trait object", and Chapter 17 devotes an entire section, “Using Trait Objects That Allow for Values of Different Types,” just to that topic. So what you learn here you’ll apply again in Chapter 17!
-
-
-

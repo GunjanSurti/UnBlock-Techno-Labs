@@ -11,7 +11,8 @@ use List::{Cons, Nil};
 mod deref;
 mod drop;
 mod refrence_counting;
-fn main() {
+mod refrence_cycle;
+fn main() { /*** left ref_cycles****************************************/
     // let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
     //  box’s pointer data
 
@@ -19,7 +20,8 @@ fn main() {
     // deref::deref();
     // drop::drop();
 
-    refrence_counting::refrece_counting();
+    // refrence_counting::refrece_counting();
+    refrence_cycle::ref_cycles();
 }
 
 /*

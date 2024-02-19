@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "hello"
+name = "chapter_01_getting_started"
 version = "0.1.0"

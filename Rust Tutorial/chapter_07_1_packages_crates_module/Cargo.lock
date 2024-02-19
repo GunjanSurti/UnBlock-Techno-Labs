@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "chapter_7_packages_crates_module"
+name = "chapter_07_1_packages_crates_module"
 version = "0.1.0"

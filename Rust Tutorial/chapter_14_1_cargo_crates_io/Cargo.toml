@@ -1,5 +1,5 @@
 [package]
-name = "chapter_14_cargo_crates_io"
+name = "chapter_14_1_cargo_crates_io"
 version = "0.1.0"
 edition = "2021"
 

@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "chapter_3"
+name = "chapter_03_common_programming_concept"
 version = "0.1.0"

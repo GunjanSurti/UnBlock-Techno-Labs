@@ -1,5 +1,5 @@
 [package]
-name = "chapter_4_ownership"
+name = "chapter_04_ownership"
 version = "0.1.0"
 edition = "2021"
 

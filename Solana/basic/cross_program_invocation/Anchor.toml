@@ -1,0 +1,19 @@
+[toolchain]
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+3 = "8W87n4DvvXD2Wmu6kWe8yu9x4F8c1o1xFgVvGxJneB2X"
+cross_program_invocation = "Cqxw8JVEXFfkU7gbscZP22TaP8SjzbDWQs9hKAZF9Rmx"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "/root/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

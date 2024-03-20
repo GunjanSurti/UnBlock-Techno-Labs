@@ -27,6 +27,9 @@ import {
   TOKEN_PROGRAM_ID,
   getAccount,
   mintTo,
+  createSetAuthorityInstruction,
+  closeAccount,
+  setAuthority,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -38,6 +41,7 @@ import {
 
 import { AccountLayout } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
+import { AuthorityType } from "@solana/spl-token";
 // creating connecting
 
 const connection = new Connection(clusterApiUrl("devnet"));
@@ -68,7 +72,7 @@ const metaData: TokenMetadata = {
   //   uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
   uri: "",
 
-  additionalMetadata: [["description", "Only Possible On Solana"]],
+  additionalMetadata: [["Surat", "Uttran"]],
 };
 // we need calculate space to store on solana blockchain
 const mintSpace = getMintLen([ExtensionType.MetadataPointer]);
@@ -104,7 +108,7 @@ const initializeMintIx = createInitializeMintInstruction(
   tokenAddress, // mint to this account
   9, // decimals
   payer.publicKey, // payer acc
-  null, // freezeAuthority
+  payer.publicKey, // freezeAuthority
   TOKEN_2022_PROGRAM_ID
 );
 
@@ -147,7 +151,7 @@ const sig = await sendAndConfirmTransaction(
   [payer, mintKeypair], // Signers
   undefined
 );
-console.log("sig:", sig);
+// console.log("sig:", sig);
 console.log("----------------------------------------------------------");
 
 // creating or getting associated token
@@ -164,14 +168,25 @@ const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
 );
 
 console.log("Associated Account", associatedTokenAccount.address.toBase58());
-// getting metadata from blockchain
-// const chainMetadata = await getTokenMetadata(connection, mint);
 
-// console.log(chainMetadata);
-console.log("Associated Account without 58---", associatedTokenAccount.address);
+// getting metadata from blockchain (Working)
+console.log("---------------------------------------------------");
+
+const chainMetadata = await getTokenMetadata(
+  connection,
+  tokenAddress,
+  "confirmed",
+  TOKEN_2022_PROGRAM_ID
+);
+
+console.log("Metadata : ", chainMetadata);
+console.log("---------------------------------------------------");
+
+// console.log("Associated Account without 58---", associatedTokenAccount.address);
 
 // here we will mint 100 tokens to "associatedTokenAccount"
-const mintedConfirmedSignature = await mintTo(
+
+const mintedTokenConfirmedSignature = await mintTo(
   connection,
   payer, // Signer
   tokenAddress, // token address
@@ -182,17 +197,20 @@ const mintedConfirmedSignature = await mintTo(
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
 );
-console.log("Minted Confirmed Signatuer :", mintedConfirmedSignature);
 
-const mintInfo = await getMint(
+// console.log("Minted Confirmed Signatuer :", mintedTokenConfirmedSignature);
+
+// checking total supply of token
+const tokenMintInfo = await getMint(
   connection,
   tokenAddress,
   "confirmed",
   TOKEN_2022_PROGRAM_ID
 );
 
-console.log("Total Supply", mintInfo.supply);
+console.log("Total Supply", tokenMintInfo.supply);
 
+// checking balance of associated account
 const tokenAccountInfo = await getAccount(
   connection,
   associatedTokenAccount.address,
@@ -200,7 +218,9 @@ const tokenAccountInfo = await getAccount(
   TOKEN_2022_PROGRAM_ID
 );
 
-console.log("Balance ", tokenAccountInfo.amount);
+console.log("Balance of Associated account ", tokenAccountInfo.amount);
+
+/*******************Way to show all tokens present in wallet ****************/
 
 // const tokenAccounts = await connection.getTokenAccountsByOwner(
 //   // my public key
@@ -208,7 +228,7 @@ console.log("Balance ", tokenAccountInfo.amount);
 //   {
 //     programId: TOKEN_2022_PROGRAM_ID,
 //   },
-//   undefined
+//   { commitment: "confirmed" }
 // );
 
 // console.log("Token                                         Balance");
@@ -218,4 +238,81 @@ console.log("Balance ", tokenAccountInfo.amount);
 //   console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
 // });
 
+console.log(
+  "-------------------------------------------FreezeAccount----------------------"
+);
+
 // Disable minting function
+
+console.log("------------------changing authority-----------------");
+
+const stopMinting = await setAuthority(
+  connection, // connection
+  payer, // payer
+  tokenAddress, //  Address of the account to disable
+  payer,
+  AuthorityType.MintTokens, //Type of authority to set
+  null, // new authority
+  [payer],
+  { commitment: "confirmed" },
+  TOKEN_2022_PROGRAM_ID
+);
+
+console.log("Tx : ", stopMinting);
+
+// again minting to check if minting is possible without authority
+const FreezMintedConfirmedSignature = await mintTo(
+  connection,
+  payer, // Signer
+  tokenAddress, // token address
+  associatedTokenAccount.address, // destination address
+  payer, // mint Authority
+  100000000000, // 100 token because decimals for the mint are set to 9
+  [payer],
+  { commitment: "confirmed" },
+  TOKEN_2022_PROGRAM_ID
+);
+
+console.log("-------------------------------------------------");
+
+// console.log(
+//   "after freezing Minted Confirmed Signatuer :",
+//   FreezMintedConfirmedSignature
+// );
+
+///// getting mint info
+const afterMintInfo = await getMint(
+  connection,
+  tokenAddress,
+  "confirmed",
+  TOKEN_2022_PROGRAM_ID
+);
+
+console.log("Total Supply", afterMintInfo.supply);
+
+const AfterTokenAccountInfo = await getAccount(
+  connection,
+  associatedTokenAccount.address,
+  "confirmed",
+  TOKEN_2022_PROGRAM_ID
+);
+
+console.log("Balance of asscoiated account: ", AfterTokenAccountInfo.amount);
+
+/*****************Additional **********************/
+///// close token minting account not asscoiated account
+// will only close if balance is "zero"
+
+// const txSig = await closeAccount(
+//   connection, // connection
+//   payer, // payer
+//   associatedTokenAccount.address, // Account to colse
+//   payer.publicKey, // Account to receive the remaining balance of the closed account
+//   payer, //Authority which is allowed to close the account
+//   [payer],
+//   { commitment: "confirmed" },
+//   TOKEN_2022_PROGRAM_ID
+// );
+
+/**************To create new public key ***************************/
+// const pub = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')

@@ -55,15 +55,15 @@ const secretKeyHex = secretData.secretKey;
 const payer = Keypair.fromSecretKey(new Uint8Array(bs58.decode(secretKeyHex)));
 console.log("payer account:", payer.publicKey.toBase58());
 
-// Read secret key from JSON file => new authority
-const newSecretData = JSON.parse(fs.readFileSync("./newAuthority.json"));
-const newSecretKeyHex = newSecretData.secretKey;
-const newPayer = Keypair.fromSecretKey(
-  new Uint8Array(bs58.decode(newSecretKeyHex))
-);
-console.log("New payer account:", newPayer.publicKey.toBase58());
+// // Read secret key from JSON file => new authority
+// const newSecretData = JSON.parse(fs.readFileSync("./newAuthority.json"));
+// const newSecretKeyHex = newSecretData.secretKey;
+// const newPayer = Keypair.fromSecretKey(
+//   new Uint8Array(bs58.decode(newSecretKeyHex))
+// );
+// console.log("New payer account:", newPayer.publicKey.toBase58());
 
-// token Address : address which will mint new tokens
+// token Address : address which will mint new tokens to others
 const mintKeypair = Keypair.generate();
 export const tokenAddress = mintKeypair.publicKey;
 console.log("minting account:", tokenAddress.toBase58());
@@ -160,7 +160,7 @@ const sig = await sendAndConfirmTransaction(
   connection,
   transaction,
   [payer, mintKeypair], // Signers
-  undefined
+  { commitment: "confirmed" }
 );
 // console.log("signature of create Account ... Update metadata", sig);
 console.log("----------------------------------------------------------");
@@ -178,25 +178,7 @@ const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
   ASSOCIATED_TOKEN_PROGRAM_ID
 );
 
-// creating or getting associated token for newAuthority
-const newAuthorityATA = await getOrCreateAssociatedTokenAccount(
-  connection, // Connection
-  payer, //Payer of the transaction and initialization fees
-  tokenAddress, // int associated with the account to set or verify
-  newPayer.publicKey, // Owner of the account to set or verify
-  false, // Allow the owner account to be a PDA (Program Derived Address)
-  "confirmed",
-  { commitment: "confirmed" },
-  TOKEN_2022_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID
-);
-
-console.log("Associated Account", associatedTokenAccount.address.toBase58());
-
-console.log(
-  " New Authority Associated Account",
-  newAuthorityATA.address.toBase58()
-);
+console.log("Associated Account : ", associatedTokenAccount.address.toBase58());
 
 console.log(
   "-------------------------minted by old authority--------------------------"
@@ -209,7 +191,7 @@ const mintedTokenConfirmedSignature = await mintTo(
   tokenAddress, // token address
   associatedTokenAccount.address, // destination address
   payer, // mint Authority
-  1, // 100 token because decimals for the mint are set to 9
+  10000, // 100 token because decimals for the mint are set to 9
   [payer],
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
@@ -237,51 +219,46 @@ const tokenAccountInfo = await getAccount(
 
 console.log("Balance of Associated account ", tokenAccountInfo.amount);
 
-console.log("------------------changing authority-----------------");
+console.log("------------------changing authority to Null -----------------");
 
 const newAuthority = await setAuthority(
   connection, // connection
-  newPayer, // payer
+  payer, // payer
   tokenAddress, //  Address of the account to set
   payer, // Current authority of the specified type
   AuthorityType.MintTokens, //Type of authority to set
-  newPayer.publicKey, // new authority public key
+  null, // new authority public key
   [payer],
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
 );
+
+console.log(
+  "--------------------------Authority changed----------------------"
+);
+
 console.log("Tx : ", newAuthority);
 
-// mint by newAuthority
-const MintedByNewAuthority = await mintTo(
+/*********************************************************************************/
+// Instruction to update metadata, adding custom field
+const updateMetadataFieldAgain = createUpdateFieldInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: tokenAddress, // Account address that holds the metadata
+  updateAuthority: payer.publicKey, // Authority that can update the metadata
+  field: "uri", // key
+  value:
+    "https://qn-shared.quicknode-ipfs.com/ipfs/QmQFh6WuQaWAMLsw9paLZYvTsdL5xJESzcoSxzb6ZU3Gjx", // value
+});
+
+// Add instructions to new transaction
+// order is important here as some token need metadata to be inilized before mint
+const transaction2 = new Transaction().add(updateMetadataFieldAgain);
+
+// Send transaction
+const sig2 = await sendAndConfirmTransaction(
   connection,
-  newPayer, // Signer
-  tokenAddress, // token address
-  newAuthorityATA.address, // destination address
-  newPayer, // mint Authority
-  1, // 100 token because decimals for the mint are set to 9
-  [newPayer],
-  { commitment: "confirmed" },
-  TOKEN_2022_PROGRAM_ID
+  transaction2,
+  [payer], // Signers
+  { commitment: "confirmed" }
 );
-
-console.log("-------------------------------------------------");
-
-///// getting mint info
-const afterMintInfo = await getMint(
-  connection,
-  tokenAddress,
-  "confirmed",
-  TOKEN_2022_PROGRAM_ID
-);
-
-console.log("Total Supply", afterMintInfo.supply);
-
-const newAuthorityAccountInfo = await getAccount(
-  connection,
-  newAuthorityATA.address,
-  "confirmed",
-  TOKEN_2022_PROGRAM_ID
-);
-
-console.log("Balance of asscoiated account: ", newAuthorityAccountInfo.amount);
+console.log(sig2);

@@ -8,9 +8,12 @@ import {
   Transaction,
   clusterApiUrl,
   sendAndConfirmTransaction,
+  PublicKey,
 } from "@solana/web3.js";
 
 import {
+  AccountLayout,
+  AuthorityType,
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
   createInitializeMintInstruction,
@@ -30,6 +33,7 @@ import {
   createSetAuthorityInstruction,
   closeAccount,
   setAuthority,
+  decodeSetAuthorityInstruction,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -39,12 +43,11 @@ import {
   TokenMetadata,
 } from "@solana/spl-token-metadata";
 
-import { AccountLayout } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
-import { AuthorityType } from "@solana/spl-token";
 // creating connecting
 
-const connection = new Connection(clusterApiUrl("devnet"));
+const connection = new Connection(clusterApiUrl("devnet"), {
+  commitment: "confirmed",
+});
 
 // Read secret key from JSON file
 const secretData = JSON.parse(fs.readFileSync("./secret.json"));
@@ -52,14 +55,22 @@ const secretKeyHex = secretData.secretKey;
 const payer = Keypair.fromSecretKey(new Uint8Array(bs58.decode(secretKeyHex)));
 console.log("payer account:", payer.publicKey.toBase58());
 
+// Read secret key from JSON file => new authority
+const newSecretData = JSON.parse(fs.readFileSync("./newAuthority.json"));
+const newSecretKeyHex = newSecretData.secretKey;
+const newPayer = Keypair.fromSecretKey(
+  new Uint8Array(bs58.decode(newSecretKeyHex))
+);
+console.log("New payer account:", newPayer.publicKey.toBase58());
+
 // token Address : address which will mint new tokens
 const mintKeypair = Keypair.generate();
 export const tokenAddress = mintKeypair.publicKey;
 console.log("minting account:", tokenAddress.toBase58());
 
 // set custom SPL token
-const tokenName = "Token Unblock";
-const tokenSymbol = "UBT";
+const tokenName = "MulAuth";
+const tokenSymbol = "MPA";
 
 // Metadata Created
 const metaData: TokenMetadata = {
@@ -69,12 +80,11 @@ const metaData: TokenMetadata = {
   name: tokenName,
   symbol: tokenSymbol,
   // The URI pointing to richer metadata
-  //   uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
-  uri: "",
+  uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
+  //   uri: "",
 
   additionalMetadata: [["Surat", "Uttran"]],
 };
-
 // we need calculate space to store on solana blockchain
 const mintSpace = getMintLen([ExtensionType.MetadataPointer]);
 
@@ -106,8 +116,8 @@ const initializeMetadataPointerIx = createInitializeMetadataPointerInstruction(
 
 // creating Initialize Mint Instruction
 const initializeMintIx = createInitializeMintInstruction(
-  tokenAddress, // mint to this account
-  9, // decimals
+  tokenAddress, // token mint account
+  0, // decimals
   payer.publicKey, // payer acc
   payer.publicKey, // freezeAuthority
   TOKEN_2022_PROGRAM_ID
@@ -150,18 +160,31 @@ const sig = await sendAndConfirmTransaction(
   connection,
   transaction,
   [payer, mintKeypair], // Signers
-  { commitment: "confirmed" }
+  undefined
 );
-// console.log("sig:", sig);
+// console.log("signature of create Account ... Update metadata", sig);
 console.log("----------------------------------------------------------");
 
 // creating or getting associated token
 const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
-  connection,
-  payer,
-  tokenAddress,
-  payer.publicKey,
-  false,
+  connection, // Connection
+  payer, //Payer of the transaction and initialization fees
+  tokenAddress, // int associated with the account to set or verify
+  payer.publicKey, // Owner of the account to set or verify
+  false, // Allow the owner account to be a PDA (Program Derived Address)
+  "confirmed",
+  { commitment: "confirmed" },
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID
+);
+
+// creating or getting associated token for newAuthority
+const newAuthorityATA = await getOrCreateAssociatedTokenAccount(
+  connection, // Connection
+  payer, //Payer of the transaction and initialization fees
+  tokenAddress, // int associated with the account to set or verify
+  newPayer.publicKey, // Owner of the account to set or verify
+  false, // Allow the owner account to be a PDA (Program Derived Address)
   "confirmed",
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID,
@@ -170,36 +193,29 @@ const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
 
 console.log("Associated Account", associatedTokenAccount.address.toBase58());
 
-// getting metadata from blockchain (Working)
-console.log("---------------------------------------------------");
-
-const chainMetadata = await getTokenMetadata(
-  connection,
-  tokenAddress,
-  "confirmed",
-  TOKEN_2022_PROGRAM_ID
+console.log(
+  " New Authority Associated Account",
+  newAuthorityATA.address.toBase58()
 );
 
-console.log("Metadata : ", chainMetadata);
-console.log("---------------------------------------------------");
+console.log(
+  "-------------------------minted by old authority--------------------------"
+);
 
-// console.log("Associated Account without 58---", associatedTokenAccount.address);
-
-// here we will mint 100 tokens to "associatedTokenAccount"
-
+// // minted by old authority
 const mintedTokenConfirmedSignature = await mintTo(
   connection,
   payer, // Signer
   tokenAddress, // token address
   associatedTokenAccount.address, // destination address
   payer, // mint Authority
-  100000000000, // 100 token because decimals for the mint are set to 9
+  1, // 100 token because decimals for the mint are set to 9
   [payer],
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
 );
 
-// console.log("Minted Confirmed Signatuer :", mintedTokenConfirmedSignature);
+console.log("Minted Confirmed Signatuer :", mintedTokenConfirmedSignature);
 
 // checking total supply of token
 const tokenMintInfo = await getMint(
@@ -221,65 +237,35 @@ const tokenAccountInfo = await getAccount(
 
 console.log("Balance of Associated account ", tokenAccountInfo.amount);
 
-/*******************Way to show all tokens present in wallet ****************/
-
-// const tokenAccounts = await connection.getTokenAccountsByOwner(
-//   // my public key
-//   new PublicKey("BZeBnYJ1t42cYudj55xB6TMYUuMiwF8xm3138W3wHpUX"),
-//   {
-//     programId: TOKEN_2022_PROGRAM_ID,
-//   },
-//   { commitment: "confirmed" }
-// );
-
-// console.log("Token                                         Balance");
-// console.log("------------------------------------------------------------");
-// tokenAccounts.value.forEach((tokenAccount) => {
-//   const accountData = AccountLayout.decode(tokenAccount.account.data);
-//   console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
-// });
-
-console.log(
-  "-------------------------------------------FreezeAccount----------------------"
-);
-
-// Disable minting function
-
 console.log("------------------changing authority-----------------");
 
-const stopMinting = await setAuthority(
+const newAuthority = await setAuthority(
   connection, // connection
-  payer, // payer
-  tokenAddress, //  Address of the account to disable
-  payer,
+  newPayer, // payer
+  tokenAddress, //  Address of the account to set
+  payer, // Current authority of the specified type
   AuthorityType.MintTokens, //Type of authority to set
-  null, // new authority
+  newPayer.publicKey, // new authority public key
   [payer],
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
 );
-
-console.log("Tx : ", stopMinting);
+console.log("Tx : ", newAuthority);
 
 // again minting to check if minting is possible without authority
-const FreezMintedConfirmedSignature = await mintTo(
+const MintedByNewAuthority = await mintTo(
   connection,
-  payer, // Signer
+  newPayer, // Signer
   tokenAddress, // token address
-  associatedTokenAccount.address, // destination address
-  payer, // mint Authority
-  100000000000, // 100 token because decimals for the mint are set to 9
-  [payer],
+  newAuthorityATA.address, // destination address
+  newPayer, // mint Authority
+  1, // 100 token because decimals for the mint are set to 9
+  [newPayer],
   { commitment: "confirmed" },
   TOKEN_2022_PROGRAM_ID
 );
 
 console.log("-------------------------------------------------");
-
-// console.log(
-//   "after freezing Minted Confirmed Signatuer :",
-//   FreezMintedConfirmedSignature
-// );
 
 ///// getting mint info
 const afterMintInfo = await getMint(
@@ -291,29 +277,11 @@ const afterMintInfo = await getMint(
 
 console.log("Total Supply", afterMintInfo.supply);
 
-const AfterTokenAccountInfo = await getAccount(
+const newAuthorityAccountInfo = await getAccount(
   connection,
-  associatedTokenAccount.address,
+  newAuthorityATA.address,
   "confirmed",
   TOKEN_2022_PROGRAM_ID
 );
 
-console.log("Balance of asscoiated account: ", AfterTokenAccountInfo.amount);
-
-/*****************Additional **********************/
-///// close token minting account not asscoiated account
-// will only close if balance is "zero"
-
-// const txSig = await closeAccount(
-//   connection, // connection
-//   payer, // payer
-//   associatedTokenAccount.address, // Account to colse
-//   payer.publicKey, // Account to receive the remaining balance of the closed account
-//   payer, //Authority which is allowed to close the account
-//   [payer],
-//   { commitment: "confirmed" },
-//   TOKEN_2022_PROGRAM_ID
-// );
-
-/**************To create new public key ***************************/
-// const pub = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+console.log("Balance of asscoiated account: ", newAuthorityAccountInfo.amount);

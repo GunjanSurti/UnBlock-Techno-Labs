@@ -1,25 +1,21 @@
-import * as anchor from '@coral-xyz/anchor'
-import { Program } from '@coral-xyz/anchor'
-import { Keypair } from '@solana/web3.js'
-import { expect } from 'chai'
-import { Puppet } from '../target/types/puppet'
-import { PuppetMaster } from '../target/types/puppet_master'
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { Keypair } from "@solana/web3.js";
+import { expect } from "chai";
+import { Puppet } from "../target/types/puppet";
+import { PuppetMaster } from "../target/types/puppet_master";
 
+describe("puppet", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
-describe('puppet', () => {
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
-
-
-  const puppetProgram = anchor.workspace.Puppet as Program<Puppet>
+  const puppetProgram = anchor.workspace.Puppet as Program<Puppet>;
   const puppetMasterProgram = anchor.workspace
-    .PuppetMaster as Program<PuppetMaster>
+    .PuppetMaster as Program<PuppetMaster>;
 
+  const puppetKeypair = Keypair.generate();
 
-  const puppetKeypair = Keypair.generate()
-
-
-  it('Does CPI!', async () => {
+  it("Does CPI!", async () => {
     await puppetProgram.methods
       .initialize()
       .accounts({
@@ -27,8 +23,7 @@ describe('puppet', () => {
         user: provider.wallet.publicKey,
       })
       .signers([puppetKeypair])
-      .rpc()
-
+      .rpc();
 
     await puppetMasterProgram.methods
       .pullStrings(new anchor.BN(42))
@@ -36,13 +31,12 @@ describe('puppet', () => {
         puppetProgram: puppetProgram.programId,
         puppet: puppetKeypair.publicKey,
       })
-      .rpc()
-
+      .rpc();
 
     expect(
       (
         await puppetProgram.account.data.fetch(puppetKeypair.publicKey)
       ).data.toNumber()
-    ).to.equal(42)
-  })
-})
+    ).to.equal(42);
+  });
+});

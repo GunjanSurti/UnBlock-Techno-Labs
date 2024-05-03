@@ -1,0 +1,16 @@
+# Important Links
+
+- [60 Days of Solana By Rare Skill](https://www.rareskills.io/solana-tutorial)
+- [A collection of Solana programs Library](https://github.com/solana-labs/solana-program-library/tree/master)
+- [Solana Cookbook](https://solanacookbook.com/#contributing)
+- [Developer Guides | Solana](https://solana.com/developers/guides)
+- [Full Stack Solana Development with React, Anchor, Rust, and Phantom](https://dev.to/edge-and-node/the-complete-guide-to-full-stack-solana-development-with-react-anchor-rust-and-phantom-3291)
+- [Metaplex](https://www.metaplex.com/)
+- [Solana Documentation | Solana](https://solana.com/docs)
+- [Tutorials for Bitcoin, Ethereum, Solana, BSC & more! | QuickNode](https://www.quicknode.com/guides/welcome)
+- [The Anchor Book v0.29.0](https://book.anchor-lang.com/prerequisites/useful_resources.html)
+- [Solana Program Library Docs](https://spl.solana.com/)
+- [Solana for EVM Developers](https://solana.com/developers/evm-to-svm)
+- [Sealevel => Parallel Processing Thousands of Smart Contracts | Medium](https://medium.com/solana-labs/sealevel-parallel-processing-thousands-of-smart-contracts-d814b378192)
+- [Rust on Exercism](https://exercism.org/tracks/rust)
+- [Guide for Solidity Developers | Solana Wiki](https://solana.wiki/docs/solidity-guide/)
